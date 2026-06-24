@@ -1,0 +1,20 @@
+{
+  "name": "genlayer-oracle-v2",
+  "version": "1.0.0",
+  "description": "A GenLayer bonded source oracle for public price feeds.",
+  "type": "module",
+  "scripts": {
+    "dev": "python -m http.server 3000",
+    "dev:node": "npx serve . -l 3000",
+    "security:scan": "node scripts/security-check.mjs",
+    "check": "npm run security:scan"
+  },
+  "keywords": [
+    "genlayer",
+    "oracle",
+    "studionet",
+    "web3",
+    "static-site"
+  ],
+  "license": "MIT"
+}

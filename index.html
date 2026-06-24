@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Oracle — Price Truth, Verified by Consensus</title>
+<meta name="description" content="A decentralized price oracle on GenLayer. Anyone posts a price with a public source; validators read it and agree on the truth. Bonded, auditable, no middleman." />
+<link rel="stylesheet" href="./styles.css?v=6">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="#top"><i class="ph-fill ph-pulse"></i> Oracle</a>
+    <div class="nav-links">
+      <a href="#what">What it is</a>
+      <a href="#how">How it works</a>
+      <a href="#feeds">Live feeds</a>
+      <a href="https://docs.genlayer.com/" target="_blank" rel="noopener">GenLayer</a>
+      <span id="walletslot"><button class="btn ghost sm" id="connectBtn">Connect</button></span>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero" id="top">
+  <canvas id="heroCanvas"></canvas>
+  <div class="hero-grad"></div>
+  <div class="hero-content">
+    <span class="eyebrow"><span class="pip"></span> Decentralized price oracle · GenLayer</span>
+    <h1>The price is whatever<br>the <em>source</em> says it is.</h1>
+    <p class="lede">Anyone can post a price for any asset and back it with a public URL and a GEN bond. A decentralized validator set reads that source and must independently agree on the real number. Accurate claims keep their bond. Wrong claims are slashed. No trusted reporter, no middleman.</p>
+    <div class="hero-cta">
+      <button class="btn primary" id="heroPostBtn">Post a price feed <i class="ph-bold ph-arrow-up-right"></i></button>
+      <a class="btn ghost" href="#how">See how it works</a>
+    </div>
+    <div class="hero-scroll"><i class="ph-bold ph-caret-down"></i></div>
+  </div>
+</header>
+
+<!-- LIVE TICKER -->
+<div class="ticker-band">
+  <div class="ticker-track" id="ticker"><span class="tk dim">Loading live feeds…</span></div>
+</div>
+
+<main class="wrap">
+
+  <!-- WHAT IT IS -->
+  <section class="explain reveal" id="what">
+    <div class="ex-text">
+      <span class="kicker">The problem</span>
+      <h2>Smart contracts are blind to the real world.</h2>
+      <p>A normal contract can't know the price of Bitcoin, the result of a match, or the temperature in Lagos. It needs an <strong>oracle</strong> — a bridge that feeds outside data in. But most oracles are a single trusted server: if it lies or breaks, every contract that trusts it breaks too.</p>
+      <p>Oracle takes a different path. There is no privileged reporter. A price becomes <em>true</em> only when a diverse set of validators independently read the cited source and converge on the same answer — the <strong>Equivalence Principle</strong>. Money is staked on being right.</p>
+      <a class="textlink" href="https://docs.genlayer.com/core-concepts/web-data-access" target="_blank" rel="noopener">How GenLayer reads the web <i class="ph-bold ph-arrow-right"></i></a>
+    </div>
+    <figure class="ex-media">
+      <img src="https://picsum.photos/seed/oracle-network-grid/720/620" alt="A network of data nodes" loading="lazy" />
+      <figcaption>Many independent validators, one agreed-upon number.</figcaption>
+    </figure>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how reveal" id="how">
+    <div class="sec-head-c">
+      <span class="kicker">The mechanism</span>
+      <h2>Three steps from claim to truth.</h2>
+      <p>Every feed is a small, bonded bet on accuracy that anyone can audit.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">01</div>
+        <i class="ph-duotone ph-broadcast step-ic"></i>
+        <h3>Post</h3>
+        <p>Name an asset, paste a public source URL, state the price you claim, and set a tolerance. Stake GEN as your accuracy bond.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">02</div>
+        <i class="ph-duotone ph-users-three step-ic"></i>
+        <h3>Verify</h3>
+        <p>The contract fetches your source on-chain. Each validator extracts the price independently — they must agree within tolerance before the feed settles.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">03</div>
+        <i class="ph-duotone ph-seal-check step-ic"></i>
+        <h3>Settle</h3>
+        <p>If your claim matched reality, you keep your bond. A challenger who matched a counter-bond and was right takes the pot. Accuracy pays.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIVE FEEDS DATA -->
+  <section class="feeds reveal" id="feeds">
+    <div class="sec-head">
+      <div>
+        <span class="kicker">On-chain, right now</span>
+        <h2>Live price feeds</h2>
+      </div>
+      <div class="feeds-stats">
+        <div class="fstat"><span class="fs-v" id="stFeeds">0</span><span class="fs-l">feeds</span></div>
+        <div class="fstat"><span class="fs-v" id="stBonded">0</span><span class="fs-l">GEN bonded</span></div>
+        <div class="fstat"><span class="fs-v" id="stVerified">0</span><span class="fs-l">verified</span></div>
+        <button class="btn ghost sm" id="refreshBtn"><i class="ph-bold ph-arrows-clockwise"></i> Sync</button>
+      </div>
+    </div>
+
+    <div class="feeds-grid">
+      <div class="chart-card">
+        <div class="cc-head"><span>Claimed vs verified price</span><span class="cc-legend"><i class="d-amber"></i>Claimed <i class="d-green"></i>Verified</span></div>
+        <svg id="priceChart"></svg>
+      </div>
+      <div class="feedlist-card">
+        <div class="cc-head"><span>The feed</span><span class="mono" id="feedMeta">—</span></div>
+        <div class="feedlist" id="feedList"><div class="empty">Reading the chain…</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY BONDED -->
+  <section class="why reveal" id="why">
+    <div class="why-card">
+      <i class="ph-duotone ph-shield-check why-ic"></i>
+      <h3>Why bonds?</h3>
+      <p>A claim with nothing at stake is just an opinion. Requiring a bond means a liar pays for lying — and a challenger profits from catching them. Truth becomes the most rewarding strategy.</p>
+    </div>
+    <div class="why-card">
+      <i class="ph-duotone ph-eye why-ic"></i>
+      <h3>Why auditable?</h3>
+      <p>Every feed records its source URL, its claim, the verified result, and the validators' rationale — permanently, on-chain. Anyone can re-check the reasoning. Nothing happens in a black box.</p>
+    </div>
+    <div class="why-card">
+      <i class="ph-duotone ph-globe-hemisphere-west why-ic"></i>
+      <h3>Why any source?</h3>
+      <p>Because the contract reads the live web itself, a feed can be backed by an exchange API, a government page, or a sports result. If a human can read it, the validator set can verify it.</p>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-band reveal">
+    <h2>Post a price. Stake on the truth.</h2>
+    <p>It takes one transaction. Connect a wallet on GenLayer studionet and add the first feed of the day.</p>
+    <button class="btn primary lg" id="ctaPostBtn">Post a price feed <i class="ph-bold ph-arrow-up-right"></i></button>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="foot-brand"><i class="ph-fill ph-pulse"></i> Oracle</div>
+    <div class="foot-cols">
+      <div class="foot-col">
+        <span class="foot-h">Protocol</span>
+        <a href="#what">What it is</a>
+        <a href="#how">How it works</a>
+        <a href="#feeds">Live feeds</a>
+      </div>
+      <div class="foot-col">
+        <span class="foot-h">GenLayer</span>
+        <a href="https://docs.genlayer.com/" target="_blank" rel="noopener">Documentation</a>
+        <a href="https://docs.genlayer.com/developers/intelligent-contracts/equivalence-principle" target="_blank" rel="noopener">Equivalence Principle</a>
+        <a href="https://studio.genlayer.com/" target="_blank" rel="noopener">Studio</a>
+      </div>
+      <div class="foot-col">
+        <span class="foot-h">Contract</span>
+        <a id="contractLink" href="https://studio.genlayer.com/" target="_blank" rel="noopener">View on Studio</a>
+        <span class="foot-net"><span class="net-dot"></span>studionet · live</span>
+      </div>
+    </div>
+  </div>
+  <div class="foot-base">Oracle · a decentralized price feed on GenLayer studionet</div>
+</footer>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-h"><h3 id="drawerTitle">Post a price feed</h3><button class="btn ghost sm" id="closeDrawer"><i class="ph-bold ph-x"></i></button></div>
+  <div class="drawer-b" id="drawerBody"></div>
+</aside>
+<div id="log"></div>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
