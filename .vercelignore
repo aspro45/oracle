@@ -1,6 +1,9 @@
 .git/
 .vercel/
 node_modules/
+.gitignore
+.vercelignore
+package.json
 
 .env
 .env.*
