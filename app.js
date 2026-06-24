@@ -2,7 +2,7 @@ import { makeReader, write, connectWallet, activeAccount, balanceOf, short, toGe
   from "../shared/genlayer-lite.js";
 
 const CONTRACT = "0x215585A266e5a9249057dd5E1096692957D4F319";
-const EXPLORER_URL = "https://explorer-studio.genlayer.com/address/" + CONTRACT;
+const EXPLORER_URL = "https://explorer-studio.genlayer.com/address/0x215585A266e5a9249057dd5E1096692957D4F319";
 const { read } = makeReader(CONTRACT);
 const POSTED = 0, VERIFIED = 1, DISPUTED = 2, SETTLED = 3;
 const STLABEL = ["Posted", "Verified", "Disputed", "Settled"];
@@ -18,7 +18,7 @@ const safeUrl = (s) => {
 };
 
 $("contractLink").textContent = "Contract " + short(CONTRACT);
-$("contractLink").href = EXPLORER_URL;
+$("contractLink").href = "https://explorer-studio.genlayer.com/address/0x215585A266e5a9249057dd5E1096692957D4F319";
 
 function toast(msg, kind = "", title = "oracle") {
   const el = document.createElement("div"); el.className = "toast " + kind;
