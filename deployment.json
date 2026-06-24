@@ -7,7 +7,7 @@
   "explorer": "https://explorer-studio.genlayer.com",
   "contractAddress": "0x215585A266e5a9249057dd5E1096692957D4F319",
   "deployTxHash": "0x9d7ec4f0fed6d52e59fc73b6658b22a3d3b84ea0ac982aa99311227939d8af2d",
-  "contractExplorer": "https://explorer-studio.genlayer.com/address/0x215585A266e5a9249057dd5E1096692957D4F319",
+  "contractExplorer": "https://explorer-studio.genlayer.com/contracts/0x215585A266e5a9249057dd5E1096692957D4F319",
   "deployer": "0x393b0ED81c3e72dCAf5e2b70a860ed1a8A736D88",
   "deployedAt": "2026-06-24T02:43:09.735Z",
   "statusName": 7,

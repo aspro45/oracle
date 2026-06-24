@@ -11,7 +11,7 @@ This repository contains the standalone public frontend, the deployed GenLayer c
 | Network | GenLayer Studionet |
 | Chain ID | `61999` |
 | Contract | `0x215585A266e5a9249057dd5E1096692957D4F319` |
-| Explorer | https://explorer-studio.genlayer.com/address/0x215585A266e5a9249057dd5E1096692957D4F319 |
+| Explorer | https://explorer-studio.genlayer.com/contracts/0x215585A266e5a9249057dd5E1096692957D4F319 |
 | RPC | `https://studio.genlayer.com/api` |
 | Deployed | `2026-06-24T02:43:09.735Z` |
 
