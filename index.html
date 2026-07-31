@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Oracle — Price Truth, Verified by Consensus</title>
+<title>Oracle - Price Truth, Verified by Consensus</title>
 <meta name="description" content="A decentralized price oracle on GenLayer. Anyone posts a price with a public source; validators read it and agree on the truth. Bonded, auditable, no middleman." />
 <link rel="stylesheet" href="./styles.css?v=6">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="./shared/vendor/gsap-global.min.js"></script>
+<script src="./shared/vendor/three-global.min.js"></script>
 </head>
 <body>
 
@@ -47,7 +47,7 @@
 
 <!-- LIVE TICKER -->
 <div class="ticker-band">
-  <div class="ticker-track" id="ticker"><span class="tk dim">Loading live feeds…</span></div>
+  <div class="ticker-track" id="ticker"><span class="tk dim">Loading live feeds...</span></div>
 </div>
 
 <main class="wrap">
@@ -57,8 +57,8 @@
     <div class="ex-text">
       <span class="kicker">The problem</span>
       <h2>Smart contracts are blind to the real world.</h2>
-      <p>A normal contract can't know the price of Bitcoin, the result of a match, or the temperature in Lagos. It needs an <strong>oracle</strong> — a bridge that feeds outside data in. But most oracles are a single trusted server: if it lies or breaks, every contract that trusts it breaks too.</p>
-      <p>Oracle takes a different path. There is no privileged reporter. A price becomes <em>true</em> only when a diverse set of validators independently read the cited source and converge on the same answer — the <strong>Equivalence Principle</strong>. Money is staked on being right.</p>
+      <p>A normal contract can't know the price of Bitcoin, the result of a match, or the temperature in Lagos. It needs an <strong>oracle</strong> - a bridge that feeds outside data in. But most oracles are a single trusted server: if it lies or breaks, every contract that trusts it breaks too.</p>
+      <p>Oracle takes a different path. There is no privileged reporter. A price becomes <em>true</em> only when a diverse set of validators independently read the cited source and converge on the same answer - the <strong>Equivalence Principle</strong>. Money is staked on being right.</p>
       <a class="textlink" href="https://docs.genlayer.com/core-concepts/web-data-access" target="_blank" rel="noopener">How GenLayer reads the web <i class="ph-bold ph-arrow-right"></i></a>
     </div>
     <figure class="ex-media">
@@ -85,7 +85,7 @@
         <div class="step-n">02</div>
         <i class="ph-duotone ph-users-three step-ic"></i>
         <h3>Verify</h3>
-        <p>The contract fetches your source on-chain. Each validator extracts the price independently — they must agree within tolerance before the feed settles.</p>
+        <p>The contract fetches your source on-chain. Each validator extracts the price independently - they must agree within tolerance before the feed settles.</p>
       </div>
       <div class="step">
         <div class="step-n">03</div>
@@ -117,8 +117,8 @@
         <svg id="priceChart"></svg>
       </div>
       <div class="feedlist-card">
-        <div class="cc-head"><span>The feed</span><span class="mono" id="feedMeta">—</span></div>
-        <div class="feedlist" id="feedList"><div class="empty">Reading the chain…</div></div>
+        <div class="cc-head"><span>The feed</span><span class="mono" id="feedMeta">-</span></div>
+        <div class="feedlist" id="feedList"><div class="empty">Reading the chain...</div></div>
       </div>
     </div>
   </section>
@@ -128,12 +128,12 @@
     <div class="why-card">
       <i class="ph-duotone ph-shield-check why-ic"></i>
       <h3>Why bonds?</h3>
-      <p>A claim with nothing at stake is just an opinion. Requiring a bond means a liar pays for lying — and a challenger profits from catching them. Truth becomes the most rewarding strategy.</p>
+      <p>A claim with nothing at stake is just an opinion. Requiring a bond means a liar pays for lying - and a challenger profits from catching them. Truth becomes the most rewarding strategy.</p>
     </div>
     <div class="why-card">
       <i class="ph-duotone ph-eye why-ic"></i>
       <h3>Why auditable?</h3>
-      <p>Every feed records its source URL, its claim, the verified result, and the validators' rationale — permanently, on-chain. Anyone can re-check the reasoning. Nothing happens in a black box.</p>
+      <p>Every feed records its source URL, its claim, the verified result, and the validators' rationale - permanently, on-chain. Anyone can re-check the reasoning. Nothing happens in a black box.</p>
     </div>
     <div class="why-card">
       <i class="ph-duotone ph-globe-hemisphere-west why-ic"></i>
@@ -169,7 +169,7 @@
       </div>
       <div class="foot-col">
         <span class="foot-h">Contract</span>
-        <a id="contractLink" href="https://explorer-studio.genlayer.com/contracts/0x215585A266e5a9249057dd5E1096692957D4F319" target="_blank" rel="noopener">Contract 0x2155...F319 -></a>
+        <a id="contractLink" href="https://explorer-bradbury.genlayer.com/address/0x5462cfed3c5a40775e2Fe3169D13cF23Ec483802" target="_blank" rel="noopener">Contract 0x2155...F319 -></a>
         <span class="foot-net"><span class="net-dot"></span>studionet · live</span>
       </div>
     </div>

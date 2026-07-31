@@ -1,24 +1,26 @@
 import { makeReader, write, connectWallet, activeAccount, balanceOf, short, toGen, GEN, fmtErr }
-  from "../shared/genlayer-lite.js";
+  from "./shared/genlayer-lite.js";
+import { mountReviewDesk } from "./shared/review-desk.js";
 
-const CONTRACT = "0x215585A266e5a9249057dd5E1096692957D4F319";
-const EXPLORER_URL = "https://explorer-studio.genlayer.com/contracts/0x215585A266e5a9249057dd5E1096692957D4F319";
+const CONTRACT = "0x5462cfed3c5a40775e2Fe3169D13cF23Ec483802";
 const { read } = makeReader(CONTRACT);
 const POSTED = 0, VERIFIED = 1, DISPUTED = 2, SETTLED = 3;
 const STLABEL = ["Posted", "Verified", "Disputed", "Settled"];
 const STCLS = ["s-posted", "s-verified", "s-disputed", "s-settled"];
 let account = null, feeds = [];
 const $ = (id) => document.getElementById(id);
+
+queueMicrotask(() => mountReviewDesk({
+  contract: CONTRACT, read, write, ensureWallet, fmtErr,
+  entity: "Price claim", idLabel: "Feed ID", countMethod: "get_claim_count", recordMethod: "get_claim_record",
+  openWindowMethod: "open_challenge_window", submitChallengeMethod: "submit_challenge", resolveChallengeMethod: "resolve_challenge_with_genlayer",
+  submitAppealMethod: "submit_appeal", resolveAppealMethod: "resolve_appeal_with_genlayer", archiveMethod: "archive_claim",
+  variant: "terminal", kicker: "Independent price review", title: "Feed dispute station",
+  intro: "Load a published feed, challenge the quoted source with counter-evidence, and resolve every review before the claim is archived.",
+}));
 const esc = (s) => (s || "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const safeUrl = (s) => {
-  try {
-    const u = new URL(s || "");
-    return (u.protocol === "https:" || u.protocol === "http:") ? u.href : "about:blank";
-  } catch (_) { return "about:blank"; }
-};
 
 $("contractLink").textContent = "Contract " + short(CONTRACT);
-$("contractLink").href = "https://explorer-studio.genlayer.com/contracts/0x215585A266e5a9249057dd5E1096692957D4F319";
 
 function toast(msg, kind = "", title = "oracle") {
   const el = document.createElement("div"); el.className = "toast " + kind;
@@ -54,20 +56,14 @@ async function ensureWallet() { if (!account) account = await connectWallet(); a
 async function load() {
   try {
     const count = Number(await read("get_feed_count"));
-    const out = [];
-    for (let i = 0; i < count; i++) out.push({ id: i, ...(await read("get_feed", [i])) });
+    const out = await Promise.all(Array.from({ length: count }, (_, i) => read("get_feed", [i]).then((record) => ({ id: i, ...record }))));
     feeds = out;
     renderTicker(); renderList(); drawChart();
     $("feedMeta").textContent = count + (count === 1 ? " feed" : " feeds");
     countUp($("stFeeds"), count);
     countUp($("stBonded"), (Number(out.reduce((a, f) => a + BigInt(f.bond), 0n)) / 1e18).toFixed(1));
     countUp($("stVerified"), out.filter((f) => Number(f.status) === VERIFIED).length);
-  } catch (e) {
-    const empty = document.createElement("div");
-    empty.className = "empty";
-    empty.textContent = "Could not reach the chain. " + fmtErr(e);
-    $("feedList").replaceChildren(empty);
-  }
+  } catch (e) { $("feedList").innerHTML = `<div class="empty">Could not reach the chain. ${fmtErr(e)}</div>`; }
 }
 
 function renderTicker() {
@@ -140,7 +136,6 @@ function openDetail(id) {
   const f = feeds.find((x) => x.id === id); if (!f) return;
   const st = Number(f.status), disputed = f.challenger && !/^0x0+$/.test(f.challenger);
   $("drawerTitle").textContent = f.asset + " · feed #" + id;
-  const sourceHref = safeUrl(f.source_url);
   let verdict = "";
   if (st === VERIFIED) verdict = `<div class="verdict-box vb-ok"><b style="color:var(--green)">Verified.</b> The source confirmed this price within tolerance.</div>`;
   if (st === DISPUTED) verdict = `<div class="verdict-box vb-no"><b style="color:var(--red)">Disputed.</b> A re-read disagreed with the claim.</div>`;
@@ -152,7 +147,7 @@ function openDetail(id) {
     <div class="d-price">$${esc(f.claimed_price)}</div>
     ${f.verified_price ? `<label>Verified</label><div style="color:var(--amber);font-family:var(--fm);font-size:16px;margin-bottom:8px">$${esc(f.verified_price)}</div>` : ""}
     ${verdict}
-    <div class="kv"><span class="k">Source</span><span class="v"><a href="${esc(sourceHref)}" target="_blank" rel="noopener noreferrer">${esc(f.source_url)}</a></span></div>
+    <div class="kv"><span class="k">Source</span><span class="v"><a href="${esc(f.source_url)}" target="_blank" rel="noopener">${esc(f.source_url)}</a></span></div>
     <div class="kv"><span class="k">Tolerance</span><span class="v">±${f.tolerance_pct}%</span></div>
     <div class="kv"><span class="k">Bond</span><span class="v">${toGen(f.bond)} GEN</span></div>
     <div class="kv"><span class="k">Poster</span><span class="v mono">${short(f.poster)}</span></div>
@@ -182,7 +177,7 @@ async function doChallenge(id, bondWei) {
 async function doVerify(id) {
   if (!confirm("Verify now? Validators read the source URL and extract the real price. Calls a real LLM.")) return;
   const btn = $("verifyBtn"); if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> verifying'; }
-  try { await ensureWallet(); toast("Validators reading the source…", "", "verify"); await write(CONTRACT, "verify", [id]); toast("Verified on-chain.", "ok"); closeDrawer(); await load(); }
+  try { await ensureWallet(); toast("Validators reading the source...", "", "verify"); await write(CONTRACT, "verify", [id]); toast("Verified on-chain.", "ok"); closeDrawer(); await load(); }
   catch (e) { toast(fmtErr(e), "err"); if (btn) { btn.disabled = false; btn.textContent = "Verify from source"; } }
 }
 
@@ -212,7 +207,7 @@ load();
 
   const GREEN = 0x45ffab, DEEP = 0x0e7a4e, CYAN = 0x54e6ff;
 
-  // central faceted core — the "consensus" point
+  // central faceted core - the "consensus" point
   const core = new THREE.Mesh(
     new THREE.IcosahedronGeometry(2.1, 1),
     new THREE.MeshStandardMaterial({ color: 0x0a3a24, emissive: DEEP, emissiveIntensity: 0.5, metalness: 0.6, roughness: 0.25, flatShading: true })

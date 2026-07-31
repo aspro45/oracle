@@ -1,34 +1,74 @@
-// genlayer-lite.js — a tiny shared client for the static project frontends.
-// Reads use genlayer-js (from esm.sh CDN). Writes go through the connected
-// wallet (MetaMask), with the gas fields forced to legacy gasPrice=0 so the
-// wallet's gas oracle cannot wrongly claim "insufficient funds for fees" on a
-// zero-fee network like studionet.
-import { createClient, createAccount } from "https://esm.sh/genlayer-js@latest";
-import { studionet } from "https://esm.sh/genlayer-js@latest/chains";
+// genlayer-lite.js - small browser client for GenLayer Bradbury frontends.
+import { createClient, createAccount, testnetBradbury } from "./vendor/genlayer-browser.js";
 
-export const RPC = "https://studio.genlayer.com/api";
-export const STUDIONET_HEX = "0xf22f"; // 61999
+export const RPC = "https://rpc-bradbury.genlayer.com";
+export const BRADBURY_HEX = "0x107d"; // 4221
 
-const reader = createClient({ chain: studionet, account: createAccount() });
+const reader = createClient({ chain: testnetBradbury, account: createAccount() });
 
-export async function withRetry(fn, tries = 3) {
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function rpcErrorText(value) {
+  return Array.isArray(value)
+    ? value.map((item) => item?.message || item?.shortMessage || item?.details || String(item)).join(" ")
+    : (value?.message || value?.shortMessage || value?.details || String(value || ""));
+}
+
+function isTransientRpcError(value) {
+  return /rate limit|LimitExceededRpcError|Request exceeds defined limit|429|503|timeout|failed to fetch|network/i.test(rpcErrorText(value));
+}
+
+async function quietTransientRpcConsole(task) {
+  const original = console.error;
+  console.error = (...args) => {
+    const text = rpcErrorText(args);
+    if (/GenLayer RPC error/i.test(text) || isTransientRpcError(text)) return;
+    original(...args);
+  };
+  try {
+    return await task();
+  } finally {
+    console.error = original;
+  }
+}
+
+export async function withRetry(fn, tries = 1, timeoutMs = 5500) {
   let last;
   for (let i = 0; i < tries; i++) {
-    try { return await fn(); }
-    catch (e) {
+    try {
+      return await Promise.race([
+        fn(),
+        new Promise((_, reject) => setTimeout(
+          () => reject(new Error("Studionet read timed out.")),
+          timeoutMs,
+        )),
+      ]);
+    } catch (e) {
       last = e;
       const msg = (e?.message || e || "").toString();
-      if (!/failed to fetch|network|timeout|429|503/i.test(msg)) throw e;
-      await new Promise((r) => setTimeout(r, 400 * (i + 1)));
+      if (!/failed to fetch|network|timeout|timed out|429|503/i.test(msg)) throw e;
+      if (i < tries - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 400 * (i + 1)));
+      }
     }
   }
   throw last;
 }
 
+export function normalizeReadResult(value) {
+  if (typeof value !== "string") return value;
+  const trimmed = value.trim();
+  if (!trimmed || (trimmed[0] !== "{" && trimmed[0] !== "[")) return value;
+  try {
+    return JSON.parse(trimmed);
+  } catch (_) {
+    return value;
+  }
+}
 export function makeReader(address) {
   return {
     read: (functionName, args = []) =>
-      withRetry(() => reader.readContract({ address, functionName, args })),
+      withRetry(() => quietTransientRpcConsole(() => reader.readContract({ address, functionName, args }))).then(normalizeReadResult),
   };
 }
 
@@ -47,44 +87,38 @@ export async function balanceOf(address) {
   return BigInt(await rpc("eth_getBalance", [address, "latest"]));
 }
 
-async function ensureStudionet(provider) {
+async function ensureBradbury(provider) {
   if (!provider?.request) return;
   try {
-    await provider.request({ method: "wallet_switchEthereumChain", params: [{ chainId: STUDIONET_HEX }] });
+    await provider.request({ method: "wallet_switchEthereumChain", params: [{ chainId: BRADBURY_HEX }] });
   } catch (err) {
     if (err && (err.code === 4902 || /Unrecognized chain/i.test(err.message || ""))) {
       await provider.request({
         method: "wallet_addEthereumChain",
         params: [{
-          chainId: STUDIONET_HEX,
-          chainName: "GenLayer Studionet",
+          chainId: BRADBURY_HEX,
+          chainName: "GenLayer Bradbury",
           nativeCurrency: { name: "GEN", symbol: "GEN", decimals: 18 },
           rpcUrls: [RPC],
-          blockExplorers: [{ name: "Studio", url: "https://studio.genlayer.com" }],
+          blockExplorers: [{ name: "Bradbury Explorer", url: "https://explorer-bradbury.genlayer.com" }],
         }],
       });
     } else { throw err; }
   }
 }
 
-// Patch an injected provider so eth_sendTransaction always goes out as a legacy
-// zero-gas-price transaction. Stops MetaMask's oracle from overriding the fee.
 function wrapProvider(provider) {
-  if (!provider || provider.__glPatched) return provider;
+  if (!provider || provider.__glBradburyPatched) return provider;
   const orig = provider.request.bind(provider);
   provider.request = async (req) => {
     if (req?.method === "eth_sendTransaction" && Array.isArray(req.params) && req.params[0]) {
       const tx = { ...req.params[0] };
-      tx.type = "0x0";
-      tx.gasPrice = "0x0";
-      delete tx.maxFeePerGas;
-      delete tx.maxPriorityFeePerGas;
-      if (!tx.gas) tx.gas = "0x100000";
+      if (!tx.gas) tx.gas = "0x200000";
       return orig({ method: "eth_sendTransaction", params: [tx] });
     }
     return orig(req);
   };
-  provider.__glPatched = true;
+  provider.__glBradburyPatched = true;
   return provider;
 }
 
@@ -92,7 +126,7 @@ export async function connectWallet() {
   const eth = window.ethereum;
   if (!eth) throw new Error("No EVM wallet found. Install MetaMask.");
   const accts = await eth.request({ method: "eth_requestAccounts" });
-  await ensureStudionet(eth);
+  await ensureBradbury(eth);
   return accts[0];
 }
 
@@ -108,11 +142,11 @@ export async function activeAccount() {
 export async function write(address, functionName, args = [], value = 0n, waitStatus = "ACCEPTED") {
   const eth = window.ethereum;
   if (!eth) throw new Error("No EVM wallet found. Install MetaMask.");
-  await ensureStudionet(eth);
+  await ensureBradbury(eth);
   let signer = await activeAccount();
   if (!signer) signer = (await eth.request({ method: "eth_requestAccounts" }))[0];
   const wrapped = wrapProvider(eth);
-  const client = createClient({ chain: studionet, account: signer, provider: wrapped });
+  const client = createClient({ chain: testnetBradbury, account: signer, provider: wrapped });
   const hash = await client.writeContract({ address, functionName, args, value });
   await client.waitForTransactionReceipt({ hash, status: waitStatus, retries: 200 });
   return hash;
@@ -120,7 +154,7 @@ export async function write(address, functionName, args = [], value = 0n, waitSt
 
 export const short = (a) => (a ? a.slice(0, 6) + "\u2026" + a.slice(-4) : "");
 export const toGen = (wei) => (Number(BigInt(wei)) / 1e18).toLocaleString(undefined, { maximumFractionDigits: 3 });
-export const GEN = (n) => BigInt(Math.round(n * 1e6)) * 10n ** 12n; // GEN float -> wei
+export const GEN = (n) => BigInt(Math.round(n * 1e6)) * 10n ** 12n;
 
 export function fmtErr(e) {
   if (!e) return "unknown error";

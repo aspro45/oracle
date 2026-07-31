@@ -1,21 +1,23 @@
-.vercel/
+.vercel
+.env*
 node_modules/
-.DS_Store
-Thumbs.db
+.pytest_cache/
+__pycache__/
 
+# local secrets and generated state
+.vercel/
 .env
 .env.*
 *.local
 *.log
-*.pid
-
+*.pyc
+artifacts/
 data/
 vault.enc.json
 wallets.json
 projects.json
+private-keys.json
 .vault-password
-
-__pycache__/
-.pytest_cache/
-*.pyc
-artifacts/
+*.pem
+*.p12
+*.pfx

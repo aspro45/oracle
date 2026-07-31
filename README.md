@@ -1,6 +1,6 @@
 # Oracle
 
-Source-backed price and policy oracle running on GenLayer Studionet.
+Source-backed price and policy oracle running on GenLayer Bradbury.
 
 Oracle is built for cases where a number is not useful unless the source trail is visible. A feed poster can publish a value, attach obligations and evidence, then send the record through GenLayer review, challenge and appeal paths. The frontend is a read surface for that lifecycle, not a mock dashboard.
 
@@ -10,17 +10,17 @@ Oracle is built for cases where a number is not useful unless the source trail i
 | --- | --- |
 | Live app | https://oracle-github.vercel.app |
 | Repository | https://github.com/aspro45/oracle |
-| Explorer | https://explorer-studio.genlayer.com/contracts/0x215585A266e5a9249057dd5E1096692957D4F319 |
+| Explorer | https://explorer-bradbury.genlayer.com/address/0x5462cfed3c5a40775e2Fe3169D13cF23Ec483802 |
 
 ## Contract
 
 | Field | Value |
 | --- | --- |
-| Network | GenLayer Studionet |
-| Chain ID | 61999 |
-| Contract | `0x215585A266e5a9249057dd5E1096692957D4F319` |
-| Deploy transaction | `0x9d7ec4f0fed6d52e59fc73b6658b22a3d3b84ea0ac982aa99311227939d8af2d` |
-| Deployed | 2026-06-24T02:43:09.735Z |
+| Network | GenLayer Bradbury |
+| Chain ID | 4221 |
+| Contract | `0x5462cfed3c5a40775e2Fe3169D13cF23Ec483802` |
+| Deploy transaction | `0x4c7f0d82794aca134c73dfea06b21e343eb8a25ec9417a0ed8554832a55ca3d7` |
+| Deployed | 2026-07-01T17:58:09.029Z |
 | Source | `contracts/oracle_v2.py` |
 | Contract size | 74,325 bytes |
 | Smoke writes | 17 finalized transactions |
@@ -42,12 +42,12 @@ Useful read methods include `get_feed_count`, `get_claim_count`, `get_dispute_co
 
 | Action | Transaction |
 | --- | --- |
-| `set_claim_standard` | [0x02457e50...f1d1b7](https://explorer-studio.genlayer.com/tx/0x02457e50bb49e5f5bbb134af1795729ecd9548a3a7b0d0690bd48f63cdf1d1b7) |
-| `post_price` | [0x7fd60035...350623](https://explorer-studio.genlayer.com/tx/0x7fd60035b1432e5fedf59c6826128ab67f7e7045e9e69704c8b8d4ee6f350623) |
-| `add_obligation` | [0x73fcf9c9...64dc9d](https://explorer-studio.genlayer.com/tx/0x73fcf9c925717f1e41ed3f0c48bd59267e89f63068bd61bf1e2bd2ec7f64dc9d) |
-| `add_evidence_price` | [0xeef558f6...4ba856](https://explorer-studio.genlayer.com/tx/0xeef558f667a06e3237e98cdff480b8aa82764c4f5e3b79ef98b02c2ba74ba856) |
-| `add_evidence_docs` | [0x33271ff1...bea33f](https://explorer-studio.genlayer.com/tx/0x33271ff1fad4b0c46d934dccd2587a336188f04c2b162618601a552a9abea33f) |
-| `review` | [0x773a30f0...292c09](https://explorer-studio.genlayer.com/tx/0x773a30f0a00918eed93877a2dc2a23358c20b46851ad6db23cebb7ff8d292c09) |
+| `set_claim_standard` | [0x861dec0d...5ec766](https://explorer-bradbury.genlayer.com/tx/0x861dec0d0e873ba4176ce03a4ff857806ba7bfab37ff4ab784d70d53175ec766) |
+| `post_price` | [0xd28962a6...e0bc18](https://explorer-bradbury.genlayer.com/tx/0xd28962a6b04fc02a2fd99273aac92b1e00b867c9745b5ba637a78ae96ce0bc18) |
+| `add_obligation` | [0x8975873e...79bc15](https://explorer-bradbury.genlayer.com/tx/0x8975873e1c89fed3329ebea918791d8834d9422e1bf6851ea2a831c09f79bc15) |
+| `add_evidence_price` | [0x65df7d89...9fbd3c](https://explorer-bradbury.genlayer.com/tx/0x65df7d891a07f1d4896f37e37dedd21012429eb120f6b4e629ad6acfb99fbd3c) |
+| `add_evidence_docs` | [0xc978ae8d...516cc0](https://explorer-bradbury.genlayer.com/tx/0xc978ae8da5873e3ccd3ecaa675a6b335d930da564cc2141f3e45315379516cc0) |
+| `review` | [0xc4f6c312...3f6a26](https://explorer-bradbury.genlayer.com/tx/0xc4f6c312e01f7a3d0ef370311e51b47e56982e73db95fced0fca9435d63f6a26) |
 
 ## Local Run
 

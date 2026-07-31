@@ -1,18 +1,18 @@
-"""Seed Oracle V2 with public price feeds on Studionet."""
+"""Seed ORACLE with real price feeds on studionet (burner wallet)."""
 from pathlib import Path
 from gltest_cli.config.general import get_general_config
 from gltest_cli.config.user import load_user_config
 from gltest import get_contract_factory, get_default_account
 
 ROOT = Path(__file__).resolve().parents[1]
-cfg = load_user_config(str(ROOT / "gltest.studionet.yaml"))
+cfg = load_user_config(str(ROOT / "gltest.config.yaml"))
 get_general_config().user_config = cfg
 
-ADDR = "0x215585A266e5a9249057dd5E1096692957D4F319"
+ADDR = "0x565F9E8EAc411ECa5b4804F350d44734E9F1FE32"
 GEN = 10 ** 18
 
 acct = get_default_account()
-factory = get_contract_factory(contract_file_path=str(ROOT / "contracts" / "oracle_v2.py"))
+factory = get_contract_factory(contract_file_path=str(ROOT / "contracts" / "oracle.py"))
 contract = factory.build_contract(ADDR, account=acct)
 
 # Real assets + real public source URLs the contract could read on verify.

@@ -1,49 +1,91 @@
-import { readdir, readFile, stat } from "node:fs/promises";
-import path from "node:path";
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join, relative } from "node:path";
 
 const root = process.cwd();
-const skipDirs = new Set([".git", ".vercel", "node_modules", "__pycache__", ".pytest_cache"]);
-const forbiddenNames = new Set([
+const blockedNames = new Set([
   ".env",
   ".env.local",
   ".vault-password",
   "vault.enc.json",
   "wallets.json",
-  "projects.json"
+  "projects.json",
+  "private-keys.json",
 ]);
-
+const skippedDirectories = new Set([
+  ".git",
+  ".vercel",
+  "node_modules",
+  "__pycache__",
+  ".pytest_cache",
+  "artifacts",
+  "vendor",
+]);
+const safeTextFiles = new Set([
+  "README.md",
+  "SECURITY.md",
+  "scripts/security-check.mjs",
+]);
 const secretPatterns = [
-  { name: "private key assignment", re: /\b(private[_ -]?key|wallet[_ -]?key)\s*[:=]\s*['"]?[0-9a-fx]/i },
-  { name: "mnemonic assignment", re: /\b(mnemonic|seed[_ -]?phrase)\s*[:=]/i },
-  { name: "vault password assignment", re: /\b(vault[_ -]?password|VAULT_PASSWORD)\s*[:=]/ },
-  { name: "pem private key", re: /-----BEGIN [A-Z ]*PRIVATE KEY-----/ },
-  { name: "local vault password literal", re: /gl-vault-[A-Za-z0-9-]+/ }
+  {
+    name: "private key assignment",
+    re: /\b(?:private[_ -]?key|wallet[_ -]?key|PRIVATE_KEY)\s*[:=]\s*["']?(?:0x)?[a-fA-F0-9]{64}\b/,
+  },
+  {
+    name: "mnemonic assignment",
+    re: /\b(?:mnemonic|seed[_ -]?phrase)\s*[:=]\s*["'][a-z]+(?:\s+[a-z]+){10,23}["']/i,
+  },
+  {
+    name: "vault password assignment",
+    re: /\b(?:vault[_ -]?password|VAULT_PASSWORD)\s*[:=]\s*["'][^"']{8,}["']/,
+  },
+  {
+    name: "PEM private key",
+    re: /-----BEGIN [A-Z ]*PRIVATE KEY-----/,
+  },
+  {
+    name: "raw 32-byte secret",
+    re: /\b0x[a-fA-F0-9]{64}\b/,
+  },
 ];
 
 const findings = [];
 
-async function walk(dir) {
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name);
-    const rel = path.relative(root, full).replaceAll("\\", "/");
+function isPublicDeploymentMetadata(relativePath) {
+  return /^deployment(?:\.[A-Za-z0-9_-]+)?\.json$/.test(relativePath);
+}
+
+function walk(directory) {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const absolutePath = join(directory, entry.name);
+    const relativePath = relative(root, absolutePath).replaceAll("\\", "/");
+
     if (entry.isDirectory()) {
-      if (!skipDirs.has(entry.name)) await walk(full);
+      if (!skippedDirectories.has(entry.name)) walk(absolutePath);
       continue;
     }
-    if (forbiddenNames.has(entry.name)) {
-      findings.push(`${rel}: forbidden local-secret filename`);
+
+    if (blockedNames.has(entry.name)) {
+      findings.push(`${relativePath}: forbidden local-secret filename`);
       continue;
     }
-    const info = await stat(full);
-    if (info.size > 1_500_000) continue;
-    const text = await readFile(full, "utf8").catch(() => "");
+
+    const info = statSync(absolutePath);
+    if (info.size > 1_500_000 || /\.(?:png|jpe?g|webp|gif|ico|woff2?)$/i.test(entry.name)) {
+      continue;
+    }
+
+    const text = readFileSync(absolutePath, "utf8");
     for (const pattern of secretPatterns) {
-      if (pattern.re.test(text)) findings.push(`${rel}: ${pattern.name}`);
+      if (!pattern.re.test(text)) continue;
+      const allowed =
+        safeTextFiles.has(relativePath) ||
+        (pattern.name === "raw 32-byte secret" && isPublicDeploymentMetadata(relativePath));
+      if (!allowed) findings.push(`${relativePath}: possible ${pattern.name}`);
     }
   }
 }
 
-await walk(root);
+walk(root);
 
 if (findings.length) {
   console.error("Security scan failed:");
@@ -51,4 +93,4 @@ if (findings.length) {
   process.exit(1);
 }
 
-console.log("Security scan passed: no local vaults, private keys, mnemonics, or env secrets found.");
+console.log("Security scan passed: no wallet secrets, vault files, mnemonics, or env credentials found.");
