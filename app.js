@@ -50,7 +50,7 @@ async function refreshWallet() {
   if (account) { let bal = 0n; try { bal = await balanceOf(account); } catch (_) {} slot.innerHTML = `<span class="mono" style="font-size:12px;color:var(--txt2)">${short(account)} · ${toGen(bal)} GEN</span>`; }
   else { slot.innerHTML = `<button class="btn ghost sm" id="connectBtn">Connect</button>`; $("connectBtn").onclick = doConnect; }
 }
-async function doConnect() { try { account = await connectWallet(); toast("Connected on studionet.", "ok"); await refreshWallet(); } catch (e) { toast(fmtErr(e), "err"); } }
+async function doConnect() { try { account = await connectWallet(); toast("Connected on Bradbury.", "ok"); await refreshWallet(); } catch (e) { toast(fmtErr(e), "err"); } }
 async function ensureWallet() { if (!account) account = await connectWallet(); await refreshWallet(); }
 
 async function load() {

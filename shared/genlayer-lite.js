@@ -46,7 +46,7 @@ export async function withRetry(fn, tries = 1, timeoutMs = 5500) {
       return await Promise.race([
         fn(),
         new Promise((_, reject) => setTimeout(
-          () => reject(new Error("Studionet read timed out.")),
+          () => reject(new Error("Bradbury read timed out.")),
           timeoutMs,
         )),
       ]);
