@@ -4,7 +4,14 @@ import { createClient, createAccount, testnetBradbury } from "./vendor/genlayer-
 export const RPC = "https://rpc-bradbury.genlayer.com";
 export const BRADBURY_HEX = "0x107d"; // 4221
 
-const reader = createClient({ chain: testnetBradbury, account: createAccount() });
+const READ_RPC = typeof window === "undefined"
+  ? RPC
+  : `${window.location.origin}/api/genlayer`;
+const reader = createClient({
+  chain: testnetBradbury,
+  account: createAccount(),
+  endpoint: READ_RPC,
+});
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -73,7 +80,7 @@ export function makeReader(address) {
 }
 
 export async function rpc(method, params) {
-  const r = await fetch(RPC, {
+  const r = await fetch(READ_RPC, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", method, params, id: 1 }),

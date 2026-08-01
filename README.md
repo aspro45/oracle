@@ -27,6 +27,8 @@ Oracle is built for cases where a number is not useful unless the source trail i
 
 The contract uses GenLayer web rendering, prompt-based review and comparative validator agreement to keep the final oracle state tied to public evidence rather than a single submitter's claim.
 
+Production reads pass through the same-origin `/api/genlayer` relay. The relay validates JSON-RPC requests, applies bounded retries for temporary upstream failures and keeps browser clients away from cross-origin RPC instability. Wallet transactions still target the canonical Bradbury network.
+
 ## What The Protocol Does
 
 1. Defines the claim standard for a feed.
