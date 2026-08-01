@@ -8,7 +8,7 @@ Oracle is built for cases where a number is not useful unless the source trail i
 
 | Surface | URL |
 | --- | --- |
-| Live app | https://tanawo3-oracle.vercel.app |
+| Live app | https://source-oracle-feeds.vercel.app |
 | Repository | https://github.com/aspro45/oracle |
 | Explorer | https://explorer-bradbury.genlayer.com/address/0x5462cfed3c5a40775e2Fe3169D13cF23Ec483802 |
 
