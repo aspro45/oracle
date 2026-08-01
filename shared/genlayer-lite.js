@@ -153,7 +153,7 @@ export async function write(address, functionName, args = [], value = 0n, waitSt
   let signer = await activeAccount();
   if (!signer) signer = (await eth.request({ method: "eth_requestAccounts" }))[0];
   const wrapped = wrapProvider(eth);
-  const client = createClient({ chain: testnetBradbury, account: signer, provider: wrapped });
+  const client = createClient({ chain: testnetBradbury, account: signer, provider: wrapped, endpoint: READ_RPC });
   const hash = await client.writeContract({ address, functionName, args, value });
   await client.waitForTransactionReceipt({ hash, status: waitStatus, retries: 200 });
   return hash;
