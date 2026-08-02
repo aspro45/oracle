@@ -2,11 +2,11 @@ import { makeReader, write, connectWallet, activeAccount, balanceOf, short, toGe
   from "./shared/genlayer-lite.js";
 import { mountReviewDesk } from "./shared/review-desk.js";
 
-const CONTRACT = "0x5462cfed3c5a40775e2Fe3169D13cF23Ec483802";
+const CONTRACT = "0xd798b993adD0C74008f43Ea34Fb8Db5ae48e9302";
 const { read } = makeReader(CONTRACT);
-const POSTED = 0, VERIFIED = 1, DISPUTED = 2, SETTLED = 3;
-const STLABEL = ["Posted", "Verified", "Disputed", "Settled"];
-const STCLS = ["s-posted", "s-verified", "s-disputed", "s-settled"];
+const POSTED = 0, SETTLED = 1, REVIEW = 2;
+const STLABEL = ["Posted", "Settled", "Review window", "Review window"];
+const STCLS = ["s-posted", "s-verified", "s-disputed", "s-disputed"];
 let account = null, feeds = [];
 const $ = (id) => document.getElementById(id);
 
@@ -62,7 +62,7 @@ async function load() {
     $("feedMeta").textContent = count + (count === 1 ? " feed" : " feeds");
     countUp($("stFeeds"), count);
     countUp($("stBonded"), (Number(out.reduce((a, f) => a + BigInt(f.bond), 0n)) / 1e18).toFixed(1));
-    countUp($("stVerified"), out.filter((f) => Number(f.status) === VERIFIED).length);
+    countUp($("stVerified"), out.filter((f) => Number(f.status) === SETTLED).length);
   } catch (e) { $("feedList").innerHTML = `<div class="empty">Could not reach the chain. ${fmtErr(e)}</div>`; }
 }
 
@@ -70,7 +70,7 @@ function renderTicker() {
   const el = $("ticker"); if (!el) return;
   if (!feeds.length) { el.innerHTML = `<span class="tk dim">No feeds yet · post the first price claim to begin</span>`; return; }
   const items = feeds.map((f) => {
-    const v = Number(f.status) === VERIFIED;
+    const v = Number(f.status) === SETTLED;
     return `<span class="tk">${esc(f.asset)} <b>$${esc(f.claimed_price)}</b>${v ? '<i class="ph-bold ph-seal-check"></i>' : ''}</span>`;
   }).join("");
   el.innerHTML = items + items; // duplicate for seamless marquee
@@ -134,29 +134,32 @@ function openPost() {
 
 function openDetail(id) {
   const f = feeds.find((x) => x.id === id); if (!f) return;
-  const st = Number(f.status), disputed = f.challenger && !/^0x0+$/.test(f.challenger);
+  const st = Number(f.status), disputed = Number(f.challengerCount || 0) > 0;
   $("drawerTitle").textContent = f.asset + " · feed #" + id;
   let verdict = "";
-  if (st === VERIFIED) verdict = `<div class="verdict-box vb-ok"><b style="color:var(--green)">Verified.</b> The source confirmed this price within tolerance.</div>`;
-  if (st === DISPUTED) verdict = `<div class="verdict-box vb-no"><b style="color:var(--red)">Disputed.</b> A re-read disagreed with the claim.</div>`;
+  if (st === SETTLED) verdict = `<div class="verdict-box vb-ok"><b style="color:var(--green)">Settled.</b> Review, challenge and appeal timing completed before funds became claimable.</div>`;
+  if (st === REVIEW) verdict = `<div class="verdict-box vb-no"><b style="color:var(--amber)">Review window.</b> The extracted value is recorded and can still be challenged.</div>`;
   let actions = "";
-  if (st === POSTED) actions = `<button class="btn ghost block" id="challengeBtn">Challenge · bond ${toGen(f.bond)} GEN</button><button class="btn primary block" id="verifyBtn"><i class="ph-bold ph-seal-check"></i> Verify from source</button>`;
-  else if (st === DISPUTED) actions = `<button class="btn primary block" id="verifyBtn"><i class="ph-bold ph-seal-check"></i> Settle from source</button>`;
+  if (st === POSTED) actions = `<button class="btn primary block" id="verifyBtn"><i class="ph-bold ph-seal-check"></i> Start validator review</button>`;
+  else if (st === REVIEW) actions = `<button class="btn ghost block" id="challengeBtn">Add counter-bond ${toGen(f.bond)} GEN</button><button class="btn primary block" id="settleBtn"><i class="ph-bold ph-lock-key"></i> Finalize after review window</button>`;
+  else if (st === SETTLED) actions = `<button class="btn primary block" id="claimBtn"><i class="ph-bold ph-coins"></i> Claim winnings or refund</button>`;
   $("drawerBody").innerHTML = `
     <div style="font-family:var(--fd);font-weight:700;font-size:24px">${esc(f.asset)}</div>
     <div class="d-price">$${esc(f.claimed_price)}</div>
-    ${f.verified_price ? `<label>Verified</label><div style="color:var(--amber);font-family:var(--fm);font-size:16px;margin-bottom:8px">$${esc(f.verified_price)}</div>` : ""}
+    ${f.verified_price ? `<label>Reviewed value</label><div style="color:var(--amber);font-family:var(--fm);font-size:16px;margin-bottom:8px">$${esc(f.verified_price)}</div>` : ""}
     ${verdict}
     <div class="kv"><span class="k">Source</span><span class="v"><a href="${esc(f.source_url)}" target="_blank" rel="noopener">${esc(f.source_url)}</a></span></div>
     <div class="kv"><span class="k">Tolerance</span><span class="v">±${f.tolerance_pct}%</span></div>
     <div class="kv"><span class="k">Bond</span><span class="v">${toGen(f.bond)} GEN</span></div>
     <div class="kv"><span class="k">Poster</span><span class="v mono">${short(f.poster)}</span></div>
-    ${disputed ? `<div class="kv"><span class="k">Challenger</span><span class="v mono">${short(f.challenger)}</span></div>` : ""}
+    ${disputed ? `<div class="kv"><span class="k">Challengers</span><span class="v mono">${Number(f.challengerCount)}</span></div>` : ""}
+    <div class="kv"><span class="k">Lifecycle</span><span class="v mono">${esc(f.lifecycleStatus || "OPEN")}</span></div>
     <div class="kv"><span class="k">Status</span><span class="v">${STLABEL[st]}</span></div>
     <div style="margin-top:16px">${actions}</div>`;
   openDrawer();
-  if (st === POSTED) { $("challengeBtn").onclick = () => doChallenge(id, f.bond); $("verifyBtn").onclick = () => doVerify(id); }
-  else if (st === DISPUTED) $("verifyBtn").onclick = () => doVerify(id);
+  if (st === POSTED) $("verifyBtn").onclick = () => doVerify(id);
+  else if (st === REVIEW) { $("challengeBtn").onclick = () => doChallenge(id, f.bond); $("settleBtn").onclick = () => doSettle(id); }
+  else if (st === SETTLED) $("claimBtn").onclick = () => doClaim(id);
 }
 
 async function doPost() {
@@ -175,10 +178,20 @@ async function doChallenge(id, bondWei) {
   catch (e) { toast(fmtErr(e), "err"); }
 }
 async function doVerify(id) {
-  if (!confirm("Verify now? Validators read the source URL and extract the real price. Calls a real LLM.")) return;
+  if (!confirm("Start review? Validators read the source, extract the price, and open a timed challenge period.")) return;
   const btn = $("verifyBtn"); if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> verifying'; }
-  try { await ensureWallet(); toast("Validators reading the source...", "", "verify"); await write(CONTRACT, "verify", [id]); toast("Verified on-chain.", "ok"); closeDrawer(); await load(); }
+  try { await ensureWallet(); toast("Validators reading the source...", "", "verify"); await write(CONTRACT, "review_claim_with_genlayer", [String(id)]); toast("Review recorded; challenge period opened.", "ok"); closeDrawer(); await load(); }
   catch (e) { toast(fmtErr(e), "err"); if (btn) { btn.disabled = false; btn.textContent = "Verify from source"; } }
+}
+
+async function doSettle(id) {
+  try { await ensureWallet(); await write(CONTRACT, "settle", [id]); toast("Feed settled after the review windows.", "ok"); closeDrawer(); await load(); }
+  catch (e) { toast(fmtErr(e), "err"); }
+}
+
+async function doClaim(id) {
+  try { await ensureWallet(); await write(CONTRACT, "claim_winnings", [id]); toast("Payout confirmed on-chain.", "ok"); closeDrawer(); await load(); }
+  catch (e) { toast(fmtErr(e), "err"); }
 }
 
 // ---------- bindings ----------

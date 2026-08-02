@@ -10,6 +10,6 @@ ROOT = Path(__file__).resolve().parents[1]
 cfg = load_user_config(str(ROOT / "gltest.config.yaml"))
 get_general_config().user_config = cfg
 
-factory = get_contract_factory(contract_file_path=str(ROOT / "contracts" / "oracle.py"))
+factory = get_contract_factory(contract_file_path=str(ROOT / "contracts" / "oracle_v2.py"))
 contract = factory.deploy(args=[])
 print("ADDR=" + str(contract.address), flush=True)

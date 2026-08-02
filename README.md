@@ -10,7 +10,7 @@ Oracle is built for cases where a number is not useful unless the source trail i
 | --- | --- |
 | Live app | https://source-oracle-feeds.vercel.app |
 | Repository | https://github.com/aspro45/oracle |
-| Explorer | https://explorer-bradbury.genlayer.com/address/0x5462cfed3c5a40775e2Fe3169D13cF23Ec483802 |
+| Explorer | https://explorer-bradbury.genlayer.com/address/0xd798b993adD0C74008f43Ea34Fb8Db5ae48e9302 |
 
 ## Contract
 
@@ -18,38 +18,34 @@ Oracle is built for cases where a number is not useful unless the source trail i
 | --- | --- |
 | Network | GenLayer Bradbury |
 | Chain ID | 4221 |
-| Contract | `0x5462cfed3c5a40775e2Fe3169D13cF23Ec483802` |
-| Deploy transaction | `0x4c7f0d82794aca134c73dfea06b21e343eb8a25ec9417a0ed8554832a55ca3d7` |
-| Deployed | 2026-07-01T17:58:09.029Z |
+| Contract | `0xd798b993adD0C74008f43Ea34Fb8Db5ae48e9302` |
+| Deploy transaction | `0x6b41759cfac8b67c41cea7edbbb236f22bf8b70b36920dba92750ab97196a983` |
+| Deployer | `0x9A62e5Aa759e806a0965D4c7A5D10a1dae21AaEc` |
+| Deployed | 2026-08-02T21:07:15.934Z |
 | Source | `contracts/oracle_v2.py` |
-| Contract size | 74,325 bytes |
-| Smoke writes | 17 finalized transactions |
+| Contract size | 50,199 bytes |
+| Source SHA-256 | `482077edacd51c6d4a9e4fce0c6fcf5f9c12c95182e8ed9b4d1fcf75a61b3cb2` |
 
-The contract uses GenLayer web rendering, prompt-based review and comparative validator agreement to keep the final oracle state tied to public evidence rather than a single submitter's claim.
+`contract.config.json` is the machine-readable source map. It binds the frontend address, canonical source path, source hash, deployment record and deploy transaction so the submitted byte source is unambiguous.
+
+The contract uses GenLayer web rendering, prompt-based review and exact comparative validator agreement to keep the final oracle state tied to public evidence rather than a single submitter's claim.
 
 Production reads pass through the same-origin `/api/genlayer` relay. The relay validates JSON-RPC requests, applies bounded retries for temporary upstream failures and keeps browser clients away from cross-origin RPC instability. Wallet transactions still target the canonical Bradbury network.
 
 ## What The Protocol Does
 
-1. Defines the claim standard for a feed.
-2. Accepts a posted price or status value.
-3. Records source obligations, documentation links and price evidence.
-4. Opens a review window for GenLayer reasoning.
-5. Allows challenge and appeal records before final verification.
-6. Maintains reputation and legacy compatibility methods for the original UI path.
+1. Posts a bonded price claim and preserves its public source.
+2. Routes every new feed through `review_claim_with_genlayer`.
+3. Requires exact validator agreement on price extraction, validity and confidence.
+4. Tracks each challenger and bond independently, then permits challenge and appeal rulings.
+5. Holds settlement until all filings close and the deadline passes.
+6. Refunds unclear outcomes and marks a stake claimed only after a successful transfer.
 
-Useful read methods include `get_feed_count`, `get_claim_count`, `get_dispute_count`, `get_contest_count`, `get_entry_count`, `get_claim`, `get_dispute` and `get_contest`.
+Useful read methods include `get_feed_count`, `get_feed`, `get_claim_record`, `get_stake`, `get_challenges`, `get_appeals` and `get_audit_log`.
 
-## Verified Smoke Trail
+## Verification
 
-| Action | Transaction |
-| --- | --- |
-| `set_claim_standard` | [0x861dec0d...5ec766](https://explorer-bradbury.genlayer.com/tx/0x861dec0d0e873ba4176ce03a4ff857806ba7bfab37ff4ab784d70d53175ec766) |
-| `post_price` | [0xd28962a6...e0bc18](https://explorer-bradbury.genlayer.com/tx/0xd28962a6b04fc02a2fd99273aac92b1e00b867c9745b5ba637a78ae96ce0bc18) |
-| `add_obligation` | [0x8975873e...79bc15](https://explorer-bradbury.genlayer.com/tx/0x8975873e1c89fed3329ebea918791d8834d9422e1bf6851ea2a831c09f79bc15) |
-| `add_evidence_price` | [0x65df7d89...9fbd3c](https://explorer-bradbury.genlayer.com/tx/0x65df7d891a07f1d4896f37e37dedd21012429eb120f6b4e629ad6acfb99fbd3c) |
-| `add_evidence_docs` | [0xc978ae8d...516cc0](https://explorer-bradbury.genlayer.com/tx/0xc978ae8da5873e3ccd3ecaa675a6b335d930da564cc2141f3e45315379516cc0) |
-| `review` | [0xc4f6c312...3f6a26](https://explorer-bradbury.genlayer.com/tx/0xc4f6c312e01f7a3d0ef370311e51b47e56982e73db95fced0fca9435d63f6a26) |
+`tests/test_oracle.py` checks the canonical source map, posted-feed review path, challenge and appeal effects, independent multi-challenger stakes, and non-swallowed payouts. The direct GenVM suite passes 4/4.
 
 ## Local Run
 
