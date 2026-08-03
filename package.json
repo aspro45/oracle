@@ -6,8 +6,12 @@
   "scripts": {
     "dev": "python -m http.server 3000",
     "dev:node": "npx serve . -l 3000",
+    "deploy:bradbury": "node scripts/deploy-bradbury.mjs",
     "security:scan": "node scripts/security-check.mjs",
     "check": "npm run security:scan"
+  },
+  "dependencies": {
+    "genlayer-js": "1.1.8"
   },
   "keywords": [
     "genlayer",

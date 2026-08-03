@@ -51,7 +51,10 @@ const secretPatterns = [
 const findings = [];
 
 function isPublicDeploymentMetadata(relativePath) {
-  return /^deployment(?:\.[A-Za-z0-9_-]+)?\.json$/.test(relativePath);
+  return (
+    /^deployment(?:\.[A-Za-z0-9_-]+)?\.json$/.test(relativePath) ||
+    relativePath === "contract.config.json"
+  );
 }
 
 function walk(directory) {

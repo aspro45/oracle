@@ -39,19 +39,22 @@ def _mock_ruling(vm, kind, ruling, revised):
 
 def test_deploy_script_and_frontend_have_one_canonical_v2_source():
     root = Path(CONTRACT).parents[1]
-    deploy_source = (root / "scripts" / "deploy_only.py").read_text(encoding="utf-8")
-    assert '"contracts" / "oracle_v2.py"' in deploy_source
+    deploy_source = (root / "scripts" / "deploy-bradbury.mjs").read_text(encoding="utf-8")
+    assert '"contracts", "oracle_v2.py"' in deploy_source
     assert "oracle_bradbury.py" not in deploy_source
     source = Path(CONTRACT).read_text(encoding="utf-8")
     assert "Equal only if normalized price, ok and confidenceBps are exactly identical" in source
     mapping = json.loads((root / "contract.config.json").read_text(encoding="utf-8"))
     deployment = json.loads((root / mapping["deploymentRecord"]).read_text(encoding="utf-8"))
     frontend = (root / mapping["frontendAddressFile"]).read_text(encoding="utf-8")
+    index = (root / "index.html").read_text(encoding="utf-8")
     assert mapping["canonicalSource"] == "contracts/oracle_v2.py"
     assert mapping["sourceSha256"] == hashlib.sha256(source.encode()).hexdigest()
     assert mapping["contractAddress"] == deployment["contractAddress"]
     assert mapping["deployTxHash"] == deployment["deployTxHash"]
     assert mapping["contractAddress"] in frontend
+    assert mapping["contractAddress"] in index
+    assert mapping["network"] == "testnetBradbury"
 
 
 def test_posted_feed_runs_review_challenge_appeal_and_permissionless_settlement(
@@ -83,6 +86,67 @@ def test_posted_feed_runs_review_challenge_appeal_and_permissionless_settlement(
     record = json.loads(contract.get_claim_record(str(feed_id)))
     assert record["status"] == "RESOLVED"
     assert record["outcome"] == "met"
+
+    direct_vm.sender = direct_bob
+    with direct_vm.expect_revert("claim_author_only"):
+        contract.archive_claim(str(feed_id))
+    direct_vm.sender = direct_alice
+    assert contract.archive_claim(str(feed_id)) == "ARCHIVED"
+
+
+def test_only_claim_author_can_extend_dossier_and_review_freezes_it(
+    deploy, direct_vm, direct_alice, direct_bob
+):
+    contract, feed_id = _deploy_feed(deploy, direct_vm, direct_alice)
+
+    direct_vm.sender = direct_bob
+    with direct_vm.expect_revert("claim_author_only"):
+        contract.add_evidence(
+            str(feed_id), "https://example.org/injected", "supporting", "Unauthorized mutation"
+        )
+    with direct_vm.expect_revert("claim_author_only"):
+        contract.add_obligation(
+            str(feed_id), "Injected rule", "Unauthorized settlement condition", "https://example.org/rule"
+        )
+    assert json.loads(contract.get_evidence(str(feed_id))) == []
+    assert json.loads(contract.get_obligations(str(feed_id))) == []
+
+    direct_vm.sender = direct_alice
+    evidence_id = contract.add_evidence(
+        str(feed_id), "https://example.com/archive", "supporting", "Poster-owned source archive"
+    )
+    obligation_id = contract.add_obligation(
+        str(feed_id), "Timestamp rule", "Use the timestamp committed by the original source.", "https://example.com/rule"
+    )
+    evidence = json.loads(contract.get_evidence(str(feed_id)))
+    obligations = json.loads(contract.get_obligations(str(feed_id)))
+    assert evidence[0]["id"] == evidence_id
+    assert evidence[0]["submitter"].lower() == ("0x" + direct_alice.hex()).lower()
+    assert obligations[0]["id"] == obligation_id
+    assert obligations[0]["author"].lower() == ("0x" + direct_alice.hex()).lower()
+
+    direct_vm.sender = direct_bob
+    _mock_price(direct_vm)
+    contract.review_claim_with_genlayer(str(feed_id))
+
+    direct_vm.sender = direct_alice
+    with direct_vm.expect_revert("claim_locked"):
+        contract.add_evidence(
+            str(feed_id), "https://example.com/late", "supporting", "Late dossier mutation"
+        )
+    with direct_vm.expect_revert("claim_locked"):
+        contract.add_obligation(
+            str(feed_id), "Late rule", "Cannot change after review.", "https://example.com/late-rule"
+        )
+
+    direct_vm.sender = direct_bob
+    challenge_id = contract.submit_challenge(
+        str(feed_id), "Counter-evidence belongs to a separate filing.", "https://example.org/challenge"
+    )
+    challenges = json.loads(contract.get_challenges(str(feed_id)))
+    assert challenges[0]["id"] == challenge_id
+    assert challenges[0]["challenger"].lower() == ("0x" + direct_bob.hex()).lower()
+    assert challenges[0]["evidenceUrl"] == "https://example.org/challenge"
 
 
 def test_multiple_challenger_bonds_are_independent_stakes(

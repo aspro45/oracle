@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "canonicalSource": "contracts/oracle_v2.py",
-  "sourceSha256": "482077edacd51c6d4a9e4fce0c6fcf5f9c12c95182e8ed9b4d1fcf75a61b3cb2",
-  "sourceBytes": 50199,
+  "sourceSha256": "6ad1c881b38f3c44d2c04dc4c8c0beadcbbee616d28f1f9fb74fcf35066297f0",
+  "sourceBytes": 50566,
   "contractClass": "Oracle",
   "frontendAddressFile": "app.js",
   "network": "testnetBradbury",
   "chainId": 4221,
-  "contractAddress": "0xd798b993adD0C74008f43Ea34Fb8Db5ae48e9302",
-  "deployTxHash": "0x6b41759cfac8b67c41cea7edbbb236f22bf8b70b36920dba92750ab97196a983",
+  "contractAddress": "0x0e6de7862BB9c3aA6A467a268178D18bb0266d06",
+  "deployTxHash": "0x4bb64bd264272972fec4d227ffc535edad04327dea006044f52385d4e356452a",
   "deployer": "0x9A62e5Aa759e806a0965D4c7A5D10a1dae21AaEc",
   "deploymentRecord": "deployment.testnetBradbury.json"
 }

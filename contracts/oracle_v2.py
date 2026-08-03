@@ -164,11 +164,17 @@ class Oracle(gl.Contract):
         if gl.message.sender_address.as_hex.lower() != self.admin.lower():
             raise Exception('admin_only')
 
+    def _require_claim_author(self, record: dict) -> None:
+        actor = gl.message.sender_address.as_hex.lower()
+        author = str(record.get('opener', record.get('asserter', ''))).lower()
+        if author == '' or actor != author:
+            raise Exception('claim_author_only')
+
     def _require_operator(self, record: dict) -> None:
         actor = gl.message.sender_address.as_hex.lower()
         if actor == self.admin.lower():
             return
-        keys = ('client', 'worker', 'proposer', 'sponsor', 'payer', 'payee', 'holder', 'insurer', 'seller', 'buyer', 'author', 'owner')
+        keys = ('opener', 'asserter', 'claimant', 'client', 'worker', 'proposer', 'sponsor', 'payer', 'payee', 'holder', 'insurer', 'seller', 'buyer', 'author', 'owner')
         i = 0
         while i < len(keys):
             value = str(record.get(keys[i], '')).lower()
@@ -440,7 +446,8 @@ class Oracle(gl.Contract):
         self.clock += 1
         actor = gl.message.sender_address.as_hex
         a = self._load_claim(claim_id)
-        if a['status'] not in ('OPEN', 'ACTIVE', 'CLAIMED', 'REVIEWING', 'REVIEWED'):
+        self._require_claim_author(a)
+        if a['status'] not in ('OPEN', 'ACTIVE', 'CLAIMED'):
             raise Exception('claim_locked')
         clean = _clean_url(trigger_url)
         cid = str(len(self.obligations))
@@ -455,7 +462,8 @@ class Oracle(gl.Contract):
         self.clock += 1
         actor = gl.message.sender_address.as_hex
         a = self._load_claim(claim_id)
-        if a['status'] not in ('OPEN', 'ACTIVE', 'CLAIMED', 'REVIEWING', 'REVIEWED', 'CHALLENGE_WINDOW'):
+        self._require_claim_author(a)
+        if a['status'] not in ('OPEN', 'ACTIVE', 'CLAIMED'):
             raise Exception('claim_locked')
         clean = _clean_url(url)
         eid = str(len(self.evidence))
@@ -734,6 +742,7 @@ class Oracle(gl.Contract):
         self.clock += 1
         actor = gl.message.sender_address.as_hex
         a = self._load_claim(claim_id)
+        self._require_claim_author(a)
         if a['status'] != 'RESOLVED':
             raise Exception('invalid_transition')
         before = a['status']
