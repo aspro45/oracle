@@ -7,8 +7,8 @@
   "frontendAddressFile": "app.js",
   "network": "testnetBradbury",
   "chainId": 4221,
-  "contractAddress": "0x0e6de7862BB9c3aA6A467a268178D18bb0266d06",
-  "deployTxHash": "0x4bb64bd264272972fec4d227ffc535edad04327dea006044f52385d4e356452a",
-  "deployer": "0x9A62e5Aa759e806a0965D4c7A5D10a1dae21AaEc",
+  "contractAddress": "0xBd33C057A0f744652Ca25aAAF3D9a1e4aCdaFeb7",
+  "deployTxHash": "0xf00f66aca9995920a9fb567844e7f8a9f53db1468ad7982eed1c40319d4d40cc",
+  "deployer": "0xf6d02F13D7BB5fC24aB6A3D662619641958A3Cf6",
   "deploymentRecord": "deployment.testnetBradbury.json"
 }

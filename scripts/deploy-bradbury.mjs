@@ -77,11 +77,12 @@ if (!PRIVATE_KEY_RE.test(privateKey)) {
 
 const config = JSON.parse(readFileSync(CONFIG_PATH, "utf8"));
 const account = createAccount(privateKey);
-if (
-  config.deployer &&
-  String(config.deployer).toLowerCase() !== account.address.toLowerCase()
-) {
-  throw new Error(`Deployment wallet mismatch: expected public address ${config.deployer}.`);
+const expectedDeployer = (process.env.EXPECTED_DEPLOYER_ADDRESS || "").trim();
+if (!ADDRESS_RE.test(expectedDeployer)) {
+  throw new Error("EXPECTED_DEPLOYER_ADDRESS is missing or invalid in the ignored environment file.");
+}
+if (expectedDeployer.toLowerCase() !== account.address.toLowerCase()) {
+  throw new Error(`Deployment wallet mismatch: expected public address ${expectedDeployer}.`);
 }
 
 const source = readFileSync(SOURCE_PATH);

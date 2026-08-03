@@ -5,15 +5,15 @@
   "chainId": 4221,
   "rpc": "https://rpc-bradbury.genlayer.com",
   "explorer": "https://explorer-bradbury.genlayer.com",
-  "contractAddress": "0x0e6de7862BB9c3aA6A467a268178D18bb0266d06",
-  "deployTxHash": "0x4bb64bd264272972fec4d227ffc535edad04327dea006044f52385d4e356452a",
-  "contractExplorer": "https://explorer-bradbury.genlayer.com/address/0x0e6de7862BB9c3aA6A467a268178D18bb0266d06",
-  "deployer": "0x9A62e5Aa759e806a0965D4c7A5D10a1dae21AaEc",
-  "deployedAt": "2026-08-03T09:45:34.171Z",
+  "contractAddress": "0xBd33C057A0f744652Ca25aAAF3D9a1e4aCdaFeb7",
+  "deployTxHash": "0xf00f66aca9995920a9fb567844e7f8a9f53db1468ad7982eed1c40319d4d40cc",
+  "contractExplorer": "https://explorer-bradbury.genlayer.com/address/0xBd33C057A0f744652Ca25aAAF3D9a1e4aCdaFeb7",
+  "deployer": "0xf6d02F13D7BB5fC24aB6A3D662619641958A3Cf6",
+  "deployedAt": "2026-08-03T21:42:32.233Z",
   "statusName": "ACCEPTED",
   "smoke": {
     "readMethod": "get_feed_count",
     "readValue": 0,
-    "verifiedAt": "2026-08-03T09:45:34.172Z"
+    "verifiedAt": "2026-08-03T21:42:32.234Z"
   }
 }

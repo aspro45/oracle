@@ -2,7 +2,7 @@ import { makeReader, write, connectWallet, activeAccount, balanceOf, short, toGe
   from "./shared/genlayer-lite.js";
 import { mountReviewDesk } from "./shared/review-desk.js";
 
-const CONTRACT = "0x0e6de7862BB9c3aA6A467a268178D18bb0266d06";
+const CONTRACT = "0xBd33C057A0f744652Ca25aAAF3D9a1e4aCdaFeb7";
 const { read } = makeReader(CONTRACT);
 const POSTED = 0, SETTLED = 1, REVIEW = 2;
 const STLABEL = ["Posted", "Settled", "Review window", "Review window"];

@@ -10,7 +10,7 @@ Oracle is built for cases where a number is not useful unless the source trail i
 | --- | --- |
 | Live app | https://source-oracle-feeds.vercel.app |
 | Repository | https://github.com/aspro45/oracle |
-| Explorer | https://explorer-bradbury.genlayer.com/address/0x0e6de7862BB9c3aA6A467a268178D18bb0266d06 |
+| Explorer | https://explorer-bradbury.genlayer.com/address/0xBd33C057A0f744652Ca25aAAF3D9a1e4aCdaFeb7 |
 
 ## Contract
 
@@ -18,10 +18,10 @@ Oracle is built for cases where a number is not useful unless the source trail i
 | --- | --- |
 | Network | GenLayer Bradbury |
 | Chain ID | 4221 |
-| Contract | `0x0e6de7862BB9c3aA6A467a268178D18bb0266d06` |
-| Deploy transaction | `0x4bb64bd264272972fec4d227ffc535edad04327dea006044f52385d4e356452a` |
-| Deployer | `0x9A62e5Aa759e806a0965D4c7A5D10a1dae21AaEc` |
-| Deployed | 2026-08-03T09:45:34.171Z |
+| Contract | `0xBd33C057A0f744652Ca25aAAF3D9a1e4aCdaFeb7` |
+| Deploy transaction | `0xf00f66aca9995920a9fb567844e7f8a9f53db1468ad7982eed1c40319d4d40cc` |
+| Deployer | `0xf6d02F13D7BB5fC24aB6A3D662619641958A3Cf6` |
+| Deployed | 2026-08-03T21:42:32.233Z |
 | Source | `contracts/oracle_v2.py` |
 | Contract size | 50,566 bytes |
 | Source SHA-256 | `6ad1c881b38f3c44d2c04dc4c8c0beadcbbee616d28f1f9fb74fcf35066297f0` |
